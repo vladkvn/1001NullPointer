@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +36,11 @@ public class RegController {
         }
         model.put("login",login);
         model.put("pass",pass);
-            return new ModelAndView("info",model);
+        try {
+            db.test();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new ModelAndView("info",model);
     }
 }
