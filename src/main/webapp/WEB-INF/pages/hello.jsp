@@ -2,7 +2,7 @@
 <html>
 <body>
 	<h1>${message}</h1>
-	<form action="/reg" method="post">
+	<form action="/auth" method="post">
 		<input name="login"/>
 		<input name="pass"/>
 		<input type="submit"/>

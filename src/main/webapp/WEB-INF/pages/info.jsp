@@ -13,5 +13,7 @@
 <body>
 ${login}
 ${pass}
+${status}
+${message}
 </body>
 </html>

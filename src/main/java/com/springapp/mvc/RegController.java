@@ -15,11 +15,13 @@ import java.util.Map;
  * Created by vladkvn on 12.11.2016.
  */
 @Controller
-@RequestMapping("/reg")
+
 public class RegController {
     @Autowired
     Connect db;
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(
+            value = "/reg",
+            method = RequestMethod.POST)
     public ModelAndView reg(
             @RequestParam("login") String login,
             @RequestParam("pass") String pass
@@ -28,19 +30,36 @@ public class RegController {
         System.out.println(login);
         System.out.println(pass);
         Map<String,Object> model = new HashMap<String,Object>();
-        if(true) {
-            model.put("message","Пользователь успешно зарегестрирован");
-        }
-        else {
-            model.put("message","Такой пользователь уже существует");
-        }
         model.put("login",login);
         model.put("pass",pass);
         try {
-            db.test();
+            if(db.add(new User(login,pass))) {
+                model.put("message","Пользователь успешно зарегестрирован");
+            }
+            else {
+                model.put("message","Такой пользователь уже существует");
+            }
+            Info info = new Info("Minsk","Molo");
+            db.updateInfo(login,info);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return new ModelAndView("info",model);
+    }
+
+    @RequestMapping(value = "/auth",
+            method = RequestMethod.POST)
+    public ModelAndView auth(
+            @RequestParam("login") String login,
+            @RequestParam("pass") String pass
+    ) throws SQLException {
+        Map<String, Object> model = new HashMap<String, Object>();
+        model.put("message","works");
+//        if (db.chLoginAndPass(new User(login, pass)))
+//        {
+//            reg(login,pass);
+//            return new ModelAndView("redirect:/info.jsp",model);
+//        }
+        return new ModelAndView("redirect:/info.jsp",model);
     }
 }
