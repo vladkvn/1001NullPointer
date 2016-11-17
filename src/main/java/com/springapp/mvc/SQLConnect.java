@@ -70,15 +70,14 @@ public class SQLConnect implements Connect
 
     @Override
     public Info getInfo(User user) throws SQLException {
-        Info info = null;
-        preparedStatement = connection.prepareStatement("SELECT * FROM `trainingdb`.`info`\n" +
-                "where id=?;");
-        preparedStatement.setInt((int)1, this.getId(user.getLogin()));
-        resultSet = preparedStatement.executeQuery();
-        if(resultSet.next())
-        {
-            info.setCity(resultSet.getString("name"));
-            info.setName(resultSet.getString("City"));
+        Info info = new Info();
+        PreparedStatement preparedStatement2 = connection.prepareStatement("SELECT `name`, `City` FROM trainingdb.info\n" +
+                "WHERE id=?;");
+        preparedStatement2.setInt(1, 1);
+        resultSet = preparedStatement2.executeQuery();
+        if(resultSet.next()) {
+            info.setName(resultSet.getString("name"));
+            info.setCity(resultSet.getString("City"));
         }
         return info;
     }
@@ -88,8 +87,9 @@ public class SQLConnect implements Connect
                 "where login=?;");
         preparedStatement.setString(1, login);
         resultSet = preparedStatement.executeQuery();
-        if(resultSet.next())
+        if(resultSet.next()) {
             return resultSet.getInt("id");
+        }
         return 0;
     }
 
@@ -101,11 +101,9 @@ public class SQLConnect implements Connect
             preparedStatement.setString(2, user.getPass());
             preparedStatement.executeUpdate();
             PreparedStatement preparedStatement2;
-           // preparedStatement.clearParameters();
             preparedStatement2 = connection.prepareStatement("INSERT INTO `trainingdb`.`info` (`id`, `name`, `City`) VALUES (?, 'empty', 'empty');");
             preparedStatement2.setInt(1, this.getId(user.getLogin()));
             preparedStatement2.executeUpdate();
-
             return true;
         }
         else return false;

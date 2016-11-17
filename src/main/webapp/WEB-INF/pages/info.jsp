@@ -15,5 +15,7 @@ ${login}
 ${pass}
 ${status}
 ${message}
+${City}
+${name}
 </body>
 </html>

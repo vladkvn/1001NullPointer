@@ -41,6 +41,9 @@ public class RegController {
             }
             Info info = new Info("Minsk","Molo");
             db.updateInfo(login,info);
+            info = db.getInfo(new User(login, pass));
+            model.put("name", info.getName());
+            model.put("City", info.getCity());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -60,6 +63,6 @@ public class RegController {
 //            reg(login,pass);
 //            return new ModelAndView("redirect:/info.jsp",model);
 //        }
-        return new ModelAndView("redirect:/info.jsp",model);
+        return new ModelAndView("redirect:/WEB-INF/pages/info.jsp",model);
     }
 }

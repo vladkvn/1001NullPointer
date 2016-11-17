@@ -1,8 +1,16 @@
 package com.springapp.mvc;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
 /**
  * Created by vladkvn on 12.11.2016.
  */
+@Entity
+@Table(name = "users")
 public class User {
     private int id;
     private String login;
@@ -18,6 +26,11 @@ public class User {
         this.login=login;
     }
 
+    public User() {
+    }
+
+    @Id
+    @GeneratedValue
     public int getId() {
         return id;
     }
@@ -26,6 +39,7 @@ public class User {
         this.id = id;
     }
 
+    @Column(unique = true)
     public String getLogin() {
         return login;
     }
