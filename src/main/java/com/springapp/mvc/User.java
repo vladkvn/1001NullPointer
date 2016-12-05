@@ -1,20 +1,40 @@
 package com.springapp.mvc;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import org.hibernate.annotations.OnDelete;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.*;
 
 /**
  * Created by vladkvn on 12.11.2016.
  */
 @Entity
 @Table(name = "users")
+@Transactional
 public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
+
+    @Column(name = "login",unique = true, nullable = false)
     private String login;
+
+    @Column(name = "pass", nullable = false)
     private String pass;
+
+    @OneToOne(cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY)
+    @JoinColumn(name = "info_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Info info;
+
+    public Info getInfo() {
+        return info;
+    }
+
+    public void setInfo(Info info) {
+        this.info = info;
+    }
 
     public User(String login)
     {
@@ -29,8 +49,7 @@ public class User {
     public User() {
     }
 
-    @Id
-    @GeneratedValue
+
     public int getId() {
         return id;
     }
@@ -39,7 +58,7 @@ public class User {
         this.id = id;
     }
 
-    @Column(unique = true)
+
     public String getLogin() {
         return login;
     }

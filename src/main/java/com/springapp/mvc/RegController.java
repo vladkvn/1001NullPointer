@@ -1,68 +1,82 @@
 package com.springapp.mvc;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hibernate.Session;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 
 /**
  * Created by vladkvn on 12.11.2016.
  */
 @Controller
-
 public class RegController {
-    @Autowired
+    @Resource(name = "HC")
     Connect db;
-    @RequestMapping(
-            value = "/reg",
-            method = RequestMethod.POST)
-    public ModelAndView reg(
-            @RequestParam("login") String login,
-            @RequestParam("pass") String pass
-            )
+
+    @RequestMapping("/")
+    public String hello(Model model)
     {
-        System.out.println(login);
-        System.out.println(pass);
-        Map<String,Object> model = new HashMap<String,Object>();
-        model.put("login",login);
-        model.put("pass",pass);
-        try {
-            if(db.add(new User(login,pass))) {
-                model.put("message","Пользователь успешно зарегестрирован");
-            }
-            else {
-                model.put("message","Такой пользователь уже существует");
-            }
-            Info info = new Info("Minsk","Molo");
-            db.updateInfo(login,info);
-            info = db.getInfo(new User(login, pass));
-            model.put("name", info.getName());
-            model.put("City", info.getCity());
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return new ModelAndView("info",model);
+        model.addAttribute("message","Добро пожаловать!");
+        return "auth";
     }
 
-    @RequestMapping(value = "/auth",
-            method = RequestMethod.POST)
-    public ModelAndView auth(
-            @RequestParam("login") String login,
-            @RequestParam("pass") String pass
-    ) throws SQLException {
-        Map<String, Object> model = new HashMap<String, Object>();
-        model.put("message","works");
-//        if (db.chLoginAndPass(new User(login, pass)))
-//        {
-//            reg(login,pass);
-//            return new ModelAndView("redirect:/info.jsp",model);
-//        }
-        return new ModelAndView("redirect:/WEB-INF/pages/info.jsp",model);
+    @RequestMapping(value = "/reg", method = RequestMethod.POST)
+    public String registration(
+            Model model,
+            @ModelAttribute("user") UserDTO userdto)
+    {
+        if(db.chLogin(userdto)) {
+            model.addAttribute("message","Пользователь с таким логином уже существует");
+            return "reg";
+        }
+        else {
+            db.addUser(userdto);
+            model.addAttribute("message","Регистрация прошла успешно");
+            return "reg";
+        }
+    }
+
+    @RequestMapping(value = "/auth", method = RequestMethod.POST)
+    public String authorization(
+            Model model, HttpSession Session,
+            @ModelAttribute("user") UserDTO userdto)
+        {
+        if(db.chLoginAndPass(userdto))
+        {
+            User user = db.getUserByLogin(userdto.getLogin());
+            model.addAttribute("user", user);
+            Session.setAttribute("UserDTO",userdto);
+            model.addAttribute(db.getInfoByLogin(userdto.getLogin()));
+            return "info";
+        }
+        else
+        {
+            model.addAttribute("message","Введенная комбинация логина и пароля не существует");
+            return "auth";
+        }
+    }
+
+
+
+    @RequestMapping(value = "/goReg", method = RequestMethod.POST)
+    public String goReg()
+    {
+        return "reg";
+    }
+    @RequestMapping(value = "/goAuth", method = RequestMethod.POST)
+    public String goAuth()
+    {
+        return "auth";
+    }
+
+    @RequestMapping(value = "/exit", method = RequestMethod.POST)
+    public String invalidate(HttpSession session)
+    {
+        session.invalidate();
+        return "auth";
     }
 }
