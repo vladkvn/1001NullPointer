@@ -1,9 +1,11 @@
-package com.springapp.mvc;
+package entity;
 
-import org.hibernate.annotations.OnDelete;
+import entity.Info;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by vladkvn on 12.11.2016.
@@ -13,23 +15,53 @@ import javax.persistence.*;
 @Transactional
 public class User {
     @Id
+    @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    protected int id;
+
+    @Column(name = "role_name")
+    String roleName = "user";
 
     @Column(name = "login",unique = true, nullable = false)
-    private String login;
+    protected String login;
 
     @Column(name = "pass", nullable = false)
-    private String pass;
+    protected String pass;
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
 
     @OneToOne(cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
     @JoinColumn(name = "info_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Info info;
+    protected Info info;
+
+
+    public List<Contract> getUserContracts() {
+        return userContracts;
+    }
+
+    @ManyToMany(targetEntity = Contract.class, cascade = {CascadeType.DETACH})
+    @JoinTable(name = "contract_team",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "contract_id")})
+    protected List<Contract> userContracts = new ArrayList<Contract>();
+
+
 
     public Info getInfo() {
         return info;
+    }
+
+
+    public void setUserContracts(List<Contract> userContracts) {
+        this.userContracts = userContracts;
     }
 
     public void setInfo(Info info) {
@@ -69,6 +101,16 @@ public class User {
 
     public String getPass() {
         return pass;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(((User)obj).getLogin().equals(this.login)) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     public User(String login, String pass) {
