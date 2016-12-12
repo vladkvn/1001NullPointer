@@ -47,7 +47,7 @@ public class User {
         return userContracts;
     }
 
-    @ManyToMany(targetEntity = Contract.class, cascade = {CascadeType.DETACH})
+    @ManyToMany(targetEntity = Contract.class)
     @JoinTable(name = "contract_team",
             joinColumns = {@JoinColumn(name = "user_id")},
             inverseJoinColumns = {@JoinColumn(name = "contract_id")})

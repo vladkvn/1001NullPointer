@@ -69,6 +69,7 @@ public class RegController {
     {
         if(service.idExist(id)) {
             model.addAttribute("info", service.getInfo(id));
+            model.addAttribute("user",service.getUserById(id));
             return "info";
         }
         return "errorInfo";
