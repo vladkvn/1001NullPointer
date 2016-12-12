@@ -3,6 +3,7 @@ package controllers;
 import dao.Info.InfoDao;
 import dao.User.UserDao;
 import dto.UserDto;
+import dto.UserRegDto;
 import entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -31,15 +32,20 @@ public class RegController {
     @RequestMapping(value = "/reg", method = RequestMethod.POST)
     public String registration(
             Model model,
-            @ModelAttribute("user") UserDto userdto)
+            @ModelAttribute("user") UserRegDto userRegDto)
     {
-        if(service.regOk(userdto, model)) {
-            model.addAttribute("message", "Регистрация прошла успешно");
+        if(userRegDto.isOk()) {
+            if (service.regOk(userRegDto)) {
+                model.addAttribute("message", "Регистрация прошла успешно");
+                return "auth";
+            } else {
+                model.addAttribute("message", "Пользователь с таким логином уже существует");
+                return "reg";
+            }
         }
-        else {
-            model.addAttribute("message","Пользователь с таким логином уже существует");
-        }
-        return "redirect:/auth";
+        model.addAttribute("message","Введенные пароли не совпадают");
+        model.addAttribute("login",userRegDto.getLogin());
+        return "reg";
     }
 
     @RequestMapping(value = "/auth", method = RequestMethod.POST)
