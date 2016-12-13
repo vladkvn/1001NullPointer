@@ -1,14 +1,11 @@
 package validation;
 
-import dto.InfoDto;
 import dto.UserDto;
 import entity.Company;
 import entity.Contract;
 import entity.Info;
 import org.springframework.stereotype.Component;
 import service.Service;
-
-import javax.servlet.http.HttpSession;
 
 /**
  * Created by vladkvn on 06.12.2016.
@@ -43,12 +40,10 @@ public class Validation {
 
     public boolean UserDtoIsValid(UserDto userDto)
     {
-        if(userDto.getLogin().length()>45||
-                userDto.getLogin().length()==0) {
+        if(userDto.getLogin().length()>45) {
             return false;
         }
-        if(userDto.getPass().length()>45||
-                userDto.getPass().length()==0) {
+        if(userDto.getPass().length()>45) {
             return false;
         }
         else{
@@ -58,17 +53,17 @@ public class Validation {
 
     public boolean InfoDtoIsValid(Info info)
     {
-        if(info.getAge().length()>45||info.getAge().length()==0)
+        if(info.getAge().length()>45)
             return false;
-        if(info.getCity().length()>45||info.getCity().length()==0)
+        if(info.getCity().length()>45)
             return false;
-        if(info.getEducation().length()>45||info.getEducation().length()==0)
+        if(info.getEducation().length()>45)
             return false;
-        if(info.getFN().length()>45||info.getFN().length()==0)
+        if(info.getFN().length()>45)
             return false;
-        if(info.getLN().length()>45||info.getLN().length()==0)
+        if(info.getLN().length()>45)
             return false;
-        if(info.getSex().length()>45||info.getSex().length()==0)
+        if(info.getSex().length()>45)
             return false;
         else return true;
     }
@@ -86,9 +81,9 @@ public class Validation {
     }
 
     public boolean ContractIsValid(Contract contract) {
-        if(contract.getDiscription().length()>45||contract.getDiscription().length()==0)
+        if(contract.getDiscription().length()>45)
             return false;
-        if(contract.getFullDiscription().length()>2000||contract.getFullDiscription().length()==0)
+        if(contract.getFullDiscription().length()>2000)
             return false;
         else return true;
     }

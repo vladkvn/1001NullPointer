@@ -5,7 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import service.Info.InfoService;
 import service.Service;
+import service.User.UserService;
 import validation.Validation;
 import javax.servlet.http.HttpSession;
 
@@ -15,10 +17,11 @@ import javax.servlet.http.HttpSession;
 @Controller
 public class RegController {
     @Autowired
-    Service service;
-
-    @Autowired
     Validation validation;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private InfoService infoService;
 
     @RequestMapping("/")
     public String hello(Model model)
@@ -35,7 +38,7 @@ public class RegController {
         if((UserDto) session.getAttribute("UserDto")!=null)
             return "/myInfo";
         if(validation.UserDtoIsValid(userRegDto)) {
-            if (service.canRegistr(userRegDto)) {
+            if (userService.canRegistr(userRegDto)) {
                 model.addAttribute("message", "Регистрация прошла успешно");
                 return "auth";
             } else {
@@ -59,12 +62,12 @@ public class RegController {
             model.addAttribute("message","Проверьте введенные данные");
             return "auth";
         }
-        if(service.auth(userDto))
+        if(userService.auth(userDto))
         {
             session.setAttribute("UserDto", userDto);
-            session.setAttribute("roleName", service.getUserRole(userDto));
-            int id= service.getUserId(userDto);
-            model.addAllAttributes(service.info((UserDto) session.getAttribute("UserDto")));
+            session.setAttribute("roleName", userService.getUserRole(userDto));
+            int id= userService.getUserId(userDto);
+            model.addAllAttributes(infoService.info((UserDto) session.getAttribute("UserDto")));
             session.setAttribute("id",id);
             return "redirect:/info"+id;
         }
@@ -83,9 +86,9 @@ public class RegController {
         {
             return "redirect:/auth";
         }
-        if(service.idExist(id)) {
-            model.addAttribute("info", service.getInfo(id));
-            model.addAttribute("user",service.getUserById(id));
+        if(userService.idExist(id)) {
+            model.addAttribute("info", infoService.getInfo(id));
+            model.addAttribute("user", userService.getUserById(id));
             return "info";
         }
         else {

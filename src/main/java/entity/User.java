@@ -23,10 +23,10 @@ public class User {
     String roleName = "user";
 
     @Column(name = "login",unique = true, nullable = false)
-    protected String login;
+    protected String login="";
 
     @Column(name = "pass", nullable = false)
-    protected String pass;
+    protected String pass="";
 
     public String getRoleName() {
         return roleName;

@@ -65,4 +65,9 @@ public class CommentDaoImpl implements CommentDao {
     public boolean CommentExist(int commentId) {
         return hibernateTemplate.get(Comment.class,commentId)==null?false:true;
     }
+
+    @Override
+    public List<Comment> getComments(int id) {
+        return null;
+    }
 }

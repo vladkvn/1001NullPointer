@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.SessionAttribute;
+import service.Info.InfoService;
 import service.Service;
+import service.User.UserService;
 import validation.Validation;
 
 import javax.servlet.http.HttpSession;
@@ -18,11 +20,15 @@ import javax.servlet.http.HttpSession;
  */
 @Controller
 public class InformationController {
-    @Autowired
-    Service service;
+
+
 
     @Autowired
     Validation validation;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private InfoService infoService;
 
     @RequestMapping(value = "/updateInfo", method = RequestMethod.POST)
     public String updateInfo(
@@ -36,9 +42,9 @@ public class InformationController {
         else  {
             if(validation.InfoDtoIsValid(info)) {
                 model.addAttribute(info);
-                int id = service.getUserId((UserDto) session.getAttribute("UserDto"));
+                int id = userService.getUserId((UserDto) session.getAttribute("UserDto"));
                 session.setAttribute("id", id);
-                service.updateInfo((UserDto) session.getAttribute("UserDto"), info);
+                infoService.updateInfo((UserDto) session.getAttribute("UserDto"), info);
                 return "redirect:/myInfo";
             }
             else {
@@ -48,11 +54,11 @@ public class InformationController {
         }
     }
 
-
     @RequestMapping(value = "/updateInfo", method = RequestMethod.GET)
      public String updateInfoGet(HttpSession session,
                                  Model model,
-                                 @ModelAttribute("information") Info info)
+                                 @ModelAttribute("information") Info info,
+                                 @SessionAttribute(name = "UserDto")UserDto userDto)
     {
         if(session.getAttribute("UserDto")==null) {
             model.addAttribute("message","Необходимо авторизоваться");
@@ -71,7 +77,7 @@ public class InformationController {
             return "redirect:/auth";
         }
         else {
-            model.addAttribute("info", service.getInfo((UserDto) session.getAttribute("UserDto")));
+            model.addAttribute("info", infoService.getInfo((UserDto) session.getAttribute("UserDto")));
             return "myInfo";
         }
     }
@@ -85,7 +91,7 @@ public class InformationController {
             return "redirect:/auth";
         }
         else {
-            model.addAttribute("info", service.getInfo((UserDto) session.getAttribute("UserDto")));
+            model.addAttribute("info", infoService.getInfo((UserDto) session.getAttribute("UserDto")));
             return "editInfo";
         }
     }

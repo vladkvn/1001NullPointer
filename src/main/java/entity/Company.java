@@ -25,7 +25,7 @@ public class Company {
     }
 
     @Column(name = "company_name")
-    String companyName;
+    String companyName="";
 
     @OneToMany
     @JoinTable(name = "company_contracts",

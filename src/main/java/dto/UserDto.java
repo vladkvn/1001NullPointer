@@ -5,8 +5,8 @@ package dto;
  */
 public class UserDto {
 
-    protected String login;
-    protected String pass;
+    protected String login="";
+    protected String pass="";
 
     public UserDto(String login, String pass) {
         this.login = login;
@@ -14,6 +14,10 @@ public class UserDto {
     }
 
     public UserDto() {
+    }
+
+    public UserDto(String login) {
+        this.login = login;
     }
 
     public String getLogin() {

@@ -31,15 +31,15 @@ public class Info {
     private int id;
 
     @Column(name= "LN")
-    private String LN;
+    private String LN="";
     @Column(name= "FN")
-    private String FN;
+    private String FN="";
     @Column(name= "education")
-    private String education;
+    private String education="";
     @Column(name= "age")
-    private String age;
+    private String age="";
     @Column(name= "sex")
-    private String sex;
+    private String sex="";
 
     public int getId() {
         return id;

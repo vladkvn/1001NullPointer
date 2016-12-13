@@ -6,7 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import service.Comment.CommentService;
+import service.Company.CompanyService;
+import service.Contract.ContractService;
 import service.Service;
+import service.User.UserService;
 import validation.Validation;
 import javax.servlet.http.HttpSession;
 
@@ -16,15 +20,22 @@ import javax.servlet.http.HttpSession;
 @Controller
 public class ContractController {
     @Autowired
-    Service service;
+    Validation validation;
 
     @Autowired
-    Validation validation;
+    private UserService userService;
+    @Autowired
+    private ContractService contractService;
+    @Autowired
+    private CommentService commentService;
+    @Autowired
+    private CompanyService companyService;
 
     @RequestMapping(value = "/cr_Con", method = RequestMethod.POST)
     public String cr_Con(HttpSession session,
                          Model model,
-                         @ModelAttribute("contract")Contract contract)
+                        @ModelAttribute("contract")Contract contract
+    )
     {
         if(session.getAttribute("UserDto") == null) {
             model.addAttribute("message", "Необходимо авторизоваться");
@@ -32,16 +43,16 @@ public class ContractController {
         }
         if("admin".equals(session.getAttribute("roleName"))){
             if(validation.ContractIsValid(contract)) {
-                service.addContractToUser((UserDto) session.getAttribute("UserDto"), contract);
-                return "redirect:edit_Contract" + service.getContractId(contract);
+                userService.addContractToUser((UserDto) session.getAttribute("UserDto"), contract);
+                return "redirect:edit_Contract" + contractService.getContractId(contract);
             }
             else {
-                model.addAttribute("message", "Некоректный ввод");
-                return "myInfo";
+                //model.addAttribute("message", "Некоректный ввод");
+                return "redirect:/myInfo";
             }
         }
         else {
-            model.addAttribute("contracts", service.getContracts((UserDto) session.getAttribute("UserDto")));
+            model.addAttribute("contracts", contractService.getContracts((UserDto) session.getAttribute("UserDto")));
             return "view_Contracts";
         }
     }
@@ -54,7 +65,7 @@ public class ContractController {
             return "redirect:/auth";
         }
         else {
-            model.addAttribute("contracts", service.getContracts((UserDto) session.getAttribute("UserDto")));
+            model.addAttribute("contracts", contractService.getContracts((UserDto) session.getAttribute("UserDto")));
             return "view_Contracts";
         }
     }
@@ -70,43 +81,35 @@ public class ContractController {
             return "redirect:/auth";
         }
         if("admin".equals(session.getAttribute("roleName"))||
-                service.UserGetContract((UserDto)session.getAttribute("UserDto"), contractId)) {
-                if(service.isContractExist(contractId)) {
-                    model.addAttribute("roleName", "admin");
-                    model.addAttribute("contract", service.getContractById(contractId));
+                userService.UserGetContract((UserDto)session.getAttribute("UserDto"), contractId)) {
+                if(contractService.isContractExist(contractId)) {
+                    model.addAttribute("contract", contractService.getContractById(contractId));
                     model.addAttribute("login", ((UserDto) session.getAttribute("UserDto")).getLogin());
-                    model.addAttribute("comments", service.getComments(contractId));
+
+                    model.addAttribute("comments", commentService.getComments(contractId));
                     return "view_Contract";
                 }
                 else {
-                    model.addAttribute("message", "Некоректный ввод");
-                    return "myInfo";
+                    //TODO
+                    return "redirect:/myInfo";
                 }
         }
         else {
             model.addAttribute("message","Недостаточно прав");
-            return "/myInfo";
+            return "redirect:/myInfo";
         }
     }
 
     @RequestMapping(value = "/cr_Con", method = RequestMethod.GET)
     public String crConGet(HttpSession session,
-                         Model model,
-                         @ModelAttribute("contract")Contract contract)
+                         Model model)
     {
         if(session.getAttribute("UserDto") == null) {
             model.addAttribute("message","Необходимо авторизоваться");
             return "redirect:/auth";
         }
         if("admin".equals(session.getAttribute("roleName"))) {
-            if(validation.ContractIsValid(contract))
-            {
-                return "create_Contract";
-            }
-            else {
-                model.addAttribute("message", "Некоректный ввод");
-                return "myInfo";
-            }
+            return "create_Contract";
         }
         else {
             model.addAttribute("message","Недостаточно прав");
@@ -125,11 +128,11 @@ public class ContractController {
             return "redirect:/auth";
         }
         if("admin".equals(session.getAttribute("roleName"))) {
-            if(service.isContractExist(contractId)) {
-                model.addAttribute("contract", service.getContractById(contractId));
-                model.addAttribute("usersNot", service.notInTeam(contractId));
-                model.addAttribute("users", service.getUsers(contractId));
-                model.addAttribute("companies", service.allCompanies());
+            if(contractService.isContractExist(contractId)) {
+                model.addAttribute("contract", contractService.getContractById(contractId));
+                model.addAttribute("usersNot", contractService.notInTeam(contractId));
+                model.addAttribute("users", contractService.getUsers(contractId));
+                model.addAttribute("companies", companyService.allCompanies());
                 return "edit_Contract";
             }
             else {
@@ -156,7 +159,7 @@ public class ContractController {
         }
         if("admin".equals(session.getAttribute("roleName"))) {
             Contract contract = new Contract(contractId, discription, fullDiscription);
-            service.updateContract(contract);
+            contractService.updateContract(contract);
             if(validation.ContractIsValid(contract)) {
                 return "redirect:/edit_Contract" + contractId;
             }
@@ -182,12 +185,12 @@ public class ContractController {
             return "redirect:/auth";
         }
         if("admin".equals(session.getAttribute("roleName"))) {
-            if(!service.isContractExist(contractId)){
+            if(!contractService.isContractExist(contractId)){
                 model.addAttribute("message","Запрашиваемый контракт не найден");
                 return "myInfo";
             }
             if(validation.UserDtoIsValid(userdto)) {
-                service.addUserToContract(userdto, contractId);
+                userService.addUserToContract(userdto, contractId);
                 return "redirect:/edit_Contract" + contractId;
             }
             else {
@@ -212,12 +215,12 @@ public class ContractController {
             return "redirect:/auth";
         }
         if("admin".equals(session.getAttribute("roleName"))) {
-            if(!service.isContractExist(contractId)){
+            if(!contractService.isContractExist(contractId)){
                 model.addAttribute("message","Запрашиваемый контракт не найден");
                 return "myInfo";
             }
             if(validation.UserDtoIsValid(userdto)) {
-                service.deleteUserFromContract(userdto, service.getContractById(contractId));
+                contractService.deleteUserFromContract(userdto, contractService.getContractById(contractId));
                 return "redirect:/edit_Contract" + contractId;
             }
             else {
@@ -241,9 +244,9 @@ public class ContractController {
             return "redirect:/auth";
         }
         if("admin".equals(session.getAttribute("roleName"))||
-                service.UserGetContract((UserDto)session.getAttribute("UserDto"), contractId)) {
-            if(service.isCommentExist(commentId)) {
-                service.deleteComment(commentId);
+                userService.UserGetContract((UserDto)session.getAttribute("UserDto"), contractId)) {
+            if(commentService.isCommentExist(commentId)) {
+                commentService.deleteComment(commentId);
                 return "redirect:/Contract" + contractId;
             }
             else {
@@ -268,8 +271,8 @@ public class ContractController {
             return "redirect:/auth";
         }
         else {
-            if(service.UserGetContract((UserDto) session.getAttribute("UserDto"), contractId)) {
-                service.addCommentToContract(comment, contractId, (UserDto) session.getAttribute("UserDto"));
+            if(userService.UserGetContract((UserDto) session.getAttribute("UserDto"), contractId)) {
+                commentService.addCommentToContract(comment, contractId, (UserDto) session.getAttribute("UserDto"));
                 return "redirect:/Contract" + contractId;
             }
             else {
@@ -290,8 +293,8 @@ public class ContractController {
             return "redirect:/auth";
         }
         if("admin".equals(session.getAttribute("roleName"))) {
-            if(service.isContractExist(contractId)) {
-                service.deleteContract(contractId);
+            if(contractService.isContractExist(contractId)) {
+                contractService.deleteContract(contractId);
                 return "redirect:/my_Con";
             }
             else {

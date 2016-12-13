@@ -1,13 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="vk" uri="/WEB-INF/footer" %>
 <%@ taglib prefix="vk2" uri="/WEB-INF/footerAdmin" %>
-<%--
-  Created by IntelliJ IDEA.
-  User: vladkvn
-  Date: 09.12.2016
-  Time: 22:21
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>

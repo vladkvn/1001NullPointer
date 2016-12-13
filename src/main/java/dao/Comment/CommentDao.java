@@ -19,4 +19,5 @@ public interface CommentDao {
     List<Comment> getCommentToContract(int contractId);
     void deleteCommentByContractId(int contractId);
     boolean CommentExist(int commentId);
+    List<Comment>  getComments(int id);
 }

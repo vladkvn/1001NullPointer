@@ -26,7 +26,7 @@ public class Comment {
     protected User user;
 
     @Column(name = "text")
-    protected String text;
+    protected String text="";
 
     public Comment() {
     }

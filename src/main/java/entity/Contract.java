@@ -21,7 +21,7 @@ public class Contract {
     protected int id;
 
     @Column(name = "discription", unique = true)
-    protected String discription;
+    protected String discription="";
 
     public Company getCompany() {
         return company;
