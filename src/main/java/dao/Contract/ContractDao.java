@@ -2,6 +2,7 @@ package dao.Contract;
 
 import dto.UserDto;
 import entity.Comment;
+import entity.Company;
 import entity.Contract;
 import entity.User;
 
@@ -25,4 +26,6 @@ public interface ContractDao {
     public void deleteUserFromContract(User user, Contract contract);
     public List<Comment> getCommentsInContract(Contract contract);
     public boolean isExist(String discription);
+    public boolean isExist(int contractId);
+    List<Contract> getAllForCompany(int CompanyId);
 }

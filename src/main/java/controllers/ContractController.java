@@ -1,5 +1,4 @@
 package controllers;
-
 import dto.UserDto;
 import entity.Comment;
 import entity.Contract;
@@ -9,7 +8,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import service.Service;
 import validation.Validation;
-
 import javax.servlet.http.HttpSession;
 
 /**
@@ -26,42 +24,69 @@ public class ContractController {
     @RequestMapping(value = "/cr_Con", method = RequestMethod.POST)
     public String cr_Con(HttpSession session,
                          Model model,
-                         @ModelAttribute("contract")Contract contract,
-                         @SessionAttribute("UserDto")UserDto userDto,
-                         @SessionAttribute("roleName")String roleName)
+                         @ModelAttribute("contract")Contract contract)
     {
-        if(validation.adminAccess(roleName,userDto))
-        {
-            service.addContractToUser(userDto, contract);
-            return "redirect:edit_Contract" + service.getContractId(contract);
+        if(session.getAttribute("UserDto") == null) {
+            model.addAttribute("message", "Необходимо авторизоваться");
+            return "redirect:/auth";
         }
-        else return "redirect:/";
+        if("admin".equals(session.getAttribute("roleName"))){
+            if(validation.ContractIsValid(contract)) {
+                service.addContractToUser((UserDto) session.getAttribute("UserDto"), contract);
+                return "redirect:edit_Contract" + service.getContractId(contract);
+            }
+            else {
+                model.addAttribute("message", "Некоректный ввод");
+                return "myInfo";
+            }
         }
+        else {
+            model.addAttribute("contracts", service.getContracts((UserDto) session.getAttribute("UserDto")));
+            return "view_Contracts";
+        }
+    }
 
     @RequestMapping(value = "/my_Con")
-    public String myCon(HttpSession session, Model model,@SessionAttribute("UserDto")UserDto userDto)
+    public String myCon(HttpSession session, Model model)
     {
-
-        model.addAttribute("contracts", service.getContracts(userDto));
-        return "view_Contracts";
+        if(session.getAttribute("UserDto") == null) {
+            model.addAttribute("message","Необходимо авторизоваться");
+            return "redirect:/auth";
+        }
+        else {
+            model.addAttribute("contracts", service.getContracts((UserDto) session.getAttribute("UserDto")));
+            return "view_Contracts";
+        }
     }
 
 
     @RequestMapping(value = "/Contract{id}")
     public String viewContract(HttpSession session,
                         Model model,
-                        @PathVariable(value = "id") int id,
-                        @SessionAttribute("UserDto")UserDto userDto)
+                        @PathVariable(value = "id") int contractId)
     {
-        if(session.getAttribute("UserDto")!=null)
-        {
-                model.addAttribute("roleName","admin");
-                model.addAttribute("contract", service.getContractById(id));
-                model.addAttribute("login", userDto.getLogin());
-                model.addAttribute("comments", service.getComments(id));
-                return "view_Contract";
+        if(session.getAttribute("UserDto") == null) {
+            model.addAttribute("message","Необходимо авторизоваться");
+            return "redirect:/auth";
         }
-        return "redirect:/";
+        if("admin".equals(session.getAttribute("roleName"))||
+                service.UserGetContract((UserDto)session.getAttribute("UserDto"), contractId)) {
+                if(service.isContractExist(contractId)) {
+                    model.addAttribute("roleName", "admin");
+                    model.addAttribute("contract", service.getContractById(contractId));
+                    model.addAttribute("login", ((UserDto) session.getAttribute("UserDto")).getLogin());
+                    model.addAttribute("comments", service.getComments(contractId));
+                    return "view_Contract";
+                }
+                else {
+                    model.addAttribute("message", "Некоректный ввод");
+                    return "myInfo";
+                }
+        }
+        else {
+            model.addAttribute("message","Недостаточно прав");
+            return "/myInfo";
+        }
     }
 
     @RequestMapping(value = "/cr_Con", method = RequestMethod.GET)
@@ -69,94 +94,166 @@ public class ContractController {
                          Model model,
                          @ModelAttribute("contract")Contract contract)
     {
-        if((session.getAttribute("roleName").equals("admin"))) {
-            return "create_Contract";
+        if(session.getAttribute("UserDto") == null) {
+            model.addAttribute("message","Необходимо авторизоваться");
+            return "redirect:/auth";
+        }
+        if("admin".equals(session.getAttribute("roleName"))) {
+            if(validation.ContractIsValid(contract))
+            {
+                return "create_Contract";
+            }
+            else {
+                model.addAttribute("message", "Некоректный ввод");
+                return "myInfo";
+            }
         }
         else {
-            return "redirect:/";
+            model.addAttribute("message","Недостаточно прав");
+            return "/myInfo";
         }
     }
 
-    @RequestMapping(value = "/edit_Contract{id}")
+    @RequestMapping(value = "/edit_Contract{id}", method = {RequestMethod.POST, RequestMethod.GET})
     public String editContract(
-            @PathVariable(value = "id") int id,
+            @PathVariable(value = "id") int contractId,
             HttpSession session,
             Model model
     ){
-        if((session.getAttribute("roleName").equals("admin"))) {
-            model.addAttribute("contract", service.getContractById(id));
-            model.addAttribute("usersNot", service.notInTeam(id));
-            model.addAttribute("users", service.getUsers(id));
-            return "edit_Contract";
+        if(session.getAttribute("UserDto") == null) {
+            model.addAttribute("message","Необходимо авторизоваться");
+            return "redirect:/auth";
+        }
+        if("admin".equals(session.getAttribute("roleName"))) {
+            if(service.isContractExist(contractId)) {
+                model.addAttribute("contract", service.getContractById(contractId));
+                model.addAttribute("usersNot", service.notInTeam(contractId));
+                model.addAttribute("users", service.getUsers(contractId));
+                model.addAttribute("companies", service.allCompanies());
+                return "edit_Contract";
+            }
+            else {
+                model.addAttribute("message", "Некоректный ввод");
+                return "myInfo";
+            }
         }
         else {
-            return "redirect:/";
+            model.addAttribute("message","Недостаточно прав");
+            return "/myInfo";
         }
     }
 
     @RequestMapping(value = "/updateContract{id}", method = RequestMethod.POST)
     public String updateContract(
-            @PathVariable(value = "id") int id,
+            @PathVariable(value = "id") int contractId,
             HttpSession session,
             Model model,
             @RequestParam("discription")String discription,
-            @RequestParam("fullDiscription")String fullDiscription
-    ){
-        if(session.getAttribute("roleName").equals("admin")) {
-            Contract contract = new Contract(id, discription, fullDiscription);
-            service.updateContract(contract);
-            return "redirect:edit_Contract" + id;
+            @RequestParam("fullDiscription")String fullDiscription){
+        if(session.getAttribute("UserDto") == null) {
+            model.addAttribute("message","Необходимо авторизоваться");
+            return "redirect:/auth";
         }
-        else{
-            return "redirect:/";
+        if("admin".equals(session.getAttribute("roleName"))) {
+            Contract contract = new Contract(contractId, discription, fullDiscription);
+            service.updateContract(contract);
+            if(validation.ContractIsValid(contract)) {
+                return "redirect:/edit_Contract" + contractId;
+            }
+            else {
+                model.addAttribute("message", "Некоректный ввод");
+                return "myInfo";
+            }
+        }
+        else {
+            model.addAttribute("message","Недостаточно прав");
+            return "/myInfo";
         }
     }
 
     @RequestMapping(value = "/addUser{id}", method = RequestMethod.POST)
     public String addUserToContract(
-            @PathVariable(value = "id") int id,
-            HttpSession session,
+            @PathVariable(value = "id") int contractId,
+            HttpSession session,Model model,
             @ModelAttribute("user") UserDto userdto
     ){
-        if(session.getAttribute("roleName").equals("admin")&&
-                !userdto.getLogin().equals(null)) {
-            service.addUserToContract(userdto, service.getContractById(id));
-            return "redirect:edit_Contract" + id;
+        if(session.getAttribute("UserDto")==null) {
+            model.addAttribute("message","Необходимо авторизоваться");
+            return "redirect:/auth";
         }
-        else{
-            return "redirect:/";
+        if("admin".equals(session.getAttribute("roleName"))) {
+            if(!service.isContractExist(contractId)){
+                model.addAttribute("message","Запрашиваемый контракт не найден");
+                return "myInfo";
+            }
+            if(validation.UserDtoIsValid(userdto)) {
+                service.addUserToContract(userdto, contractId);
+                return "redirect:/edit_Contract" + contractId;
+            }
+            else {
+                model.addAttribute("message", "Некоректный ввод");
+                return "myInfo";
+            }
+        }
+        else {
+            model.addAttribute("message","Недостаточно прав");
+            return "/myInfo";
         }
     }
 
     @RequestMapping(value = "/deleteUserFromContract{id}", method = RequestMethod.POST)
     public String deleteUserFromContract(
-            @PathVariable(value = "id") int id,
-            HttpSession session,
+            @PathVariable(value = "id") int contractId,
+            HttpSession session,Model model,
             @ModelAttribute("user") UserDto userdto
     ){
-        if(session.getAttribute("roleName").equals("admin")&&
-                !userdto.getLogin().equals(null)) {
-
-            service.deleteUserFromContract(userdto, service.getContractById(id));
-            return "redirect:edit_Contract" + id;
+        if(session.getAttribute("UserDto")==null) {
+            model.addAttribute("message","Необходимо авторизоваться");
+            return "redirect:/auth";
         }
-        else{
-            return "redirect:/";
+        if("admin".equals(session.getAttribute("roleName"))) {
+            if(!service.isContractExist(contractId)){
+                model.addAttribute("message","Запрашиваемый контракт не найден");
+                return "myInfo";
+            }
+            if(validation.UserDtoIsValid(userdto)) {
+                service.deleteUserFromContract(userdto, service.getContractById(contractId));
+                return "redirect:/edit_Contract" + contractId;
+            }
+            else {
+                model.addAttribute("message", "Некоректный ввод");
+                return "myInfo";
+            }
+        }
+        else {
+            model.addAttribute("message","Недостаточно прав");
+            return "/myInfo";
         }
     }
 
     @RequestMapping(value = "/deleteComment{id}", method = RequestMethod.POST)
     public String deleteComment(
-            @PathVariable(value = "id") int id,
-            HttpSession session,
-            @ModelAttribute("contractId") int contractId
-    ){
-        if(session.getAttribute("UserDto")!=null) {
-                service.deleteComment(id);
+            @PathVariable(value = "id") int commentId,
+            HttpSession session, Model model,
+            @ModelAttribute("contractId") int contractId){
+        if(session.getAttribute("UserDto")==null) {
+            model.addAttribute("message","Необходимо авторизоваться");
+            return "redirect:/auth";
+        }
+        if("admin".equals(session.getAttribute("roleName"))||
+                service.UserGetContract((UserDto)session.getAttribute("UserDto"), contractId)) {
+            if(service.isCommentExist(commentId)) {
+                service.deleteComment(commentId);
                 return "redirect:/Contract" + contractId;
             }
+            else {
+                model.addAttribute("message", "Комментарий не найден");
+                return "myInfo";
+            }
+        }
         else {
-            return "redirect:/";
+            model.addAttribute("message","Недостаточно прав");
+            return "/myInfo";
         }
     }
 
@@ -164,27 +261,48 @@ public class ContractController {
     @RequestMapping(value = "/addComment{id}", method = RequestMethod.POST)
     public String addComment(
             @PathVariable(value = "id") int contractId,
-            HttpSession session,
-            @ModelAttribute("comment") Comment comment,
-            @SessionAttribute("UserDto")UserDto userDto
-    ){
-        if(userDto!=null) {
-            service.addCommentToContract(comment, contractId, userDto);
-            return "redirect:/Contract" + contractId;
+            HttpSession session, Model model,
+            @ModelAttribute("comment") Comment comment){
+        if(session.getAttribute("UserDto")==null) {
+            model.addAttribute("message","Необходимо авторизоваться");
+            return "redirect:/auth";
         }
         else {
-                return "redirect:/";
+            if(service.UserGetContract((UserDto) session.getAttribute("UserDto"), contractId)) {
+                service.addCommentToContract(comment, contractId, (UserDto) session.getAttribute("UserDto"));
+                return "redirect:/Contract" + contractId;
+            }
+            else {
+                model.addAttribute("message","Недостаточно прав");
+                return "/myInfo";
+            }
         }
     }
 
 
     @RequestMapping(value = "/deleteContract{id}", method = RequestMethod.POST)
     public String deleteContract(
-            @PathVariable(value = "id") int id,
-            HttpSession session,
-            @SessionAttribute(name = "UserDto") UserDto userDto)
+            @PathVariable(value = "id") int contractId,
+            HttpSession session, Model model)
     {
-        service.deleteContract(id);
-        return "redirect:/my_Con";
+        if(session.getAttribute("UserDto")==null) {
+            model.addAttribute("message","Необходимо авторизоваться");
+            return "redirect:/auth";
+        }
+        if("admin".equals(session.getAttribute("roleName"))) {
+            if(service.isContractExist(contractId)) {
+                service.deleteContract(contractId);
+                return "redirect:/my_Con";
+            }
+            else {
+                model.addAttribute("message", "Контракт не найден");
+                return "myInfo";
+            }
+        }
+        else
+        {
+            model.addAttribute("message","Недостаточно прав");
+            return "/myInfo";
+        }
     }
 }

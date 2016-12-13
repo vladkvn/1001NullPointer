@@ -109,6 +109,7 @@ public class ContractDaoImpl implements ContractDao {
         Contract contract1 = getContractById(contract.getId());
         contract1.setDiscription(contract.getDiscription());
         contract1.setFullDiscription(contract.getFullDiscription());
+        contract1.setCompany(contract.getCompany());
         hibernateTemplate.update(contract1);
     }
 
@@ -127,5 +128,19 @@ public class ContractDaoImpl implements ContractDao {
     @Override
     public List<Comment> getCommentsInContract(Contract contract) {
         return contract.getCommentList();
+    }
+
+    @Override
+    public List<Contract> getAllForCompany(int companyId) {
+        String hql = "FROM entity.Contract where company_id= :company_id";
+        String params[] = new String[]{"company_id"};
+        String values[] = new String[]{String.valueOf(companyId)};
+        List<Contract> list = (List<Contract>) hibernateTemplate.findByNamedParam(hql, params, values);
+        return list;
+    }
+
+    @Override
+    public boolean isExist(int contractId) {
+        return hibernateTemplate.get(Contract.class, contractId)==null?false:true;
     }
 }

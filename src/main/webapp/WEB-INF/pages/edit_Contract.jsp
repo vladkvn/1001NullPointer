@@ -38,9 +38,28 @@
             </tr>
         </form>
         <tr>
+            <form action="/editCompany${id}" method="post">
+                <td>
+                    <select style="width: 100%;" name="companyName" required="required">
+                        <c:forEach items="${companies}" var="company" varStatus="varStatus">
+                            <c:if test="${company.companyName.equals(contract.company.companyName)}">
+                                <option selected>${company.companyName}</option>
+                            </c:if>
+                            <c:if test="${!company.companyName.equals(contract.company.companyName)}">
+                            <option>${company.companyName}</option>
+                            </c:if>
+                        </c:forEach>
+                    </select>
+                </td>
+                <td>
+                    <input style="width:100%; height: 100%;" type="submit" value="Обновить компанию"/>
+                </td>
+            </form>
+        </tr>
+        <tr>
             <form action="/addUser${id}" method="post">
                 <td>
-                <select style="width: 100%" name="login" required="required">
+                <select style="width: 100%;" name="login" required="required">
                     <c:forEach items="${usersNot}" var="user" varStatus="varStatus">
                         <option>${user.login}</option>
                     </c:forEach>

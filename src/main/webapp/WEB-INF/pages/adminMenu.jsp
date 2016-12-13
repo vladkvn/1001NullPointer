@@ -12,22 +12,39 @@
     <script language="javascript" type="text/javascript" src="<c:url value="flot/jquery.flot.js"/>"></script>
     <script type="text/javascript">
         $(function () {
-            var d4 = [
+            var t1 = [
                 <c:forEach items="${data}" var="elem" varStatus="varStatus">
                 [${varStatus.index},${elem}],
-
                 </c:forEach>
             ];
-            var d1 = [];
-            for (var i = 0; i < 14; i += 0.5)
-                d1.push([i, Math.sin(i)]);
+            var d0 = [[0,0],[0,0]];
+            <c:forEach items="${data2}" var="elem" varStatus="varStatus">
+            var d${varStatus.count} = [
+                <c:choose>
+                    <c:when test="${elem==0}">
+                        [${varStatus.count}, 0] , [${varStatus.count},0.125]
+                    </c:when>
+                    <c:otherwise>
+                        [${varStatus.count}, 0] , [${varStatus.count},${elem}]
+                    </c:otherwise>
+            </c:choose>
+                    ];
+            <c:if test="${varStatus.last}">
+                d${varStatus.count+1} = [[${varStatus.count+1}, 0] , [${varStatus.count+1},0]];
+            </c:if>
+            </c:forEach>
 
-            var d2 = [[0, 3], [4, 8], [8, 5], [9, 13]];
-
-            // a null signifies separate line segments
-            var d3 = [[0, 12], [7, 12], null, [7, 2.5], [12, 2.5]];
-
-            $.plot($("#placeholder"), [d4]);
+            $.plot($("#placeholder2"),[
+            <c:forEach items="${data2}" var="elem" varStatus="varStatus">
+                <c:if test="${!varStatus.last}">
+                { data: d${varStatus.count}, bars:{show:true}},
+                </c:if>
+                <c:if test="${varStatus.last}">
+                { data: d${varStatus.count},bars:{show:true}}
+                </c:if>
+            </c:forEach>
+        ]);
+            $.plot($("#placeholder") ,[t1]);
         });
     </script>
 </head>
@@ -73,12 +90,41 @@
                         </form>
                     </td>
                 </tr>
+                <tr>
+                    <td>
+                        <form action="/allCompanies" method="post">
+                            <input type="submit" value="Все компании">
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <form action="/cr_Com" method="get">
+                            <input type="submit" value="Создать компанию">
+                        </form>
+                    </td>
+                </tr>
             </table>
         </td>
     </tr>
     <tr>
         <td colspan="2" style="margin-left: 50px">
             График Зависимости кол-ва комментариев от кол-ва контрактов
+        </td>
+    </tr>
+    <tr>
+        <td width="75%">
+            <div id="content2">
+                <div>
+                    <div id="placeholder2" style="width:800px;height:400px;"></div>
+                </div>
+            </div>
+        </td>
+        <td>
+            Легенда:<br>
+            <c:forEach items="${legend}" var="elem" varStatus="varStatus">
+                ${varStatus.count}| ${elem}<br>
+            </c:forEach>
         </td>
     </tr>
 </table>

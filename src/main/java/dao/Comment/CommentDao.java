@@ -12,10 +12,11 @@ import java.util.List;
  * Created by vladkvn on 09.12.2016.
  */
 public interface CommentDao {
-    public void addComment(Comment comment, Contract contract);
-    public void deleteCommentById(int id);
-    public Comment getCommentById(int id);
+    void addComment(Comment comment, Contract contract);
+    void deleteCommentById(int id);
+    Comment getCommentById(int id);
     void save(Comment comment);
     List<Comment> getCommentToContract(int contractId);
-    public void deleteCommentByContractId(int contractId);
+    void deleteCommentByContractId(int contractId);
+    boolean CommentExist(int commentId);
 }

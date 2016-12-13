@@ -1,14 +1,12 @@
 package service;
 
 import dao.Comment.CommentDao;
+import dao.Company.CompanyDao;
 import dao.Contract.ContractDao;
 import dao.Info.InfoDao;
 import dao.User.UserDao;
 import dto.UserDto;
-import entity.Comment;
-import entity.Contract;
-import entity.Info;
-import entity.User;
+import entity.*;
 import org.hibernate.type.IntegerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,8 +28,9 @@ public class Service {
     ContractDao contractDao;
     @Autowired
     CommentDao commentDao;
-
-    public boolean regOk(UserDto userdto) {
+    @Autowired
+    CompanyDao companyDao;
+    public boolean canRegistr(UserDto userdto) {
         if(userDao.loginExist(userdto.getLogin())) {
             return false;
         }
@@ -127,7 +126,8 @@ public class Service {
         contractDao.update(contract);
     }
 
-    public void addUserToContract(UserDto userdto, Contract contract) {
+    public void addUserToContract(UserDto userdto, int contractId) {
+        Contract contract = contractDao.getContractById(contractId);
         contractDao.addUserToContract(userDao.getUserByLogin(userdto.getLogin()),
                 contractDao.getContractByDiscription(contract.getDiscription()));
     }
@@ -149,12 +149,12 @@ public class Service {
         commentDao.save(comment);
     }
 
-    public List<Comment> getComments(int id) {
+    public List<Comment> getComments(int contractId) {
         //return commentDao.getCommentToContract(id);
-        for (int i = 0; i < commentDao.getCommentToContract(id).size(); i++) {
-            System.out.println(commentDao.getCommentToContract(id).get(i).getText());
+        for (int i = 0; i < commentDao.getCommentToContract(contractId).size(); i++) {
+            System.out.println(commentDao.getCommentToContract(contractId).get(i).getText());
         }
-        return commentDao.getCommentToContract(id);
+        return commentDao.getCommentToContract(contractId);
     }
 
     public void deleteComment(int id) {
@@ -214,4 +214,62 @@ public class Service {
         userDao.updateUser(user);
     }
 
+    public void setNewCompany(int contractId, Company company) {
+        Contract contract = contractDao.getContractById(contractId);
+        company = companyDao.getCompanyByName(company.getCompanyName());
+        contract.setCompany(company);
+        contractDao.update(contract);
+    }
+
+    public List<Company> allCompanies() {
+        return companyDao.allCompanies();
+    }
+
+    public List<Integer> getGraphicData2() {
+        List<Company> compamies = companyDao.allCompanies();
+        List<Integer> gd = new ArrayList<Integer>();
+        int kol=0;
+        for (int i = 0; i < compamies.size(); i++) {
+            kol = contractDao.getAllForCompany(compamies.get(i).getCompanyId()).size();
+            System.out.println("Количество у комании : "+kol);
+            gd.add(i, kol);
+        }
+        return gd;
+    }
+
+    public List<String> getGraphic2Legend() {
+        List<Company> compamies = companyDao.allCompanies();
+        List<String> legend = new ArrayList<String>();
+        for (int i = 0; i < compamies.size(); i++) {
+            legend.add(i, compamies.get(i).getCompanyName());
+        }
+        return legend;
+    }
+
+
+    public Company viewCompany(int companyId) {
+        return companyDao.getCompanyById(companyId);
+    }
+
+    public List<Contract> contractsCompany(int companyId)
+    {
+        return contractDao.getAllForCompany(companyId);
+    }
+
+    public void createCompany(Company company) {
+        companyDao.save(company);
+    }
+
+    public boolean isCommentOwner(UserDto userDto, int contractId) {
+        return commentDao.getCommentById(contractId).
+                getUser().getLogin().equals(userDto.getLogin());
+    }
+
+    public boolean isContractExist(int contractId) {
+        return false;
+    }
+
+    public boolean isCommentExist(int commentId) {
+        return commentDao.CommentExist(commentId);
+    }
 }

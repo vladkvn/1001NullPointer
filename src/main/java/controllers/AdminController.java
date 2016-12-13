@@ -1,5 +1,4 @@
 package controllers;
-
 import dto.UserDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -7,6 +6,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import service.Service;
 import validation.Validation;
+
+import javax.servlet.http.HttpSession;
 
 /**
  * Created by vladkvn on 12.12.2016.
@@ -18,13 +19,17 @@ public class AdminController {
     @Autowired
     Validation validation;
 
-    @RequestMapping(value = "/adminMenu", method = RequestMethod.POST)
-    public String adminMenu(@SessionAttribute("roleName")String roleName,
-                               @SessionAttribute("UserDto") UserDto userDto,
-                               Model model)
+    @RequestMapping(value = "/adminMenu", method = {RequestMethod.POST,RequestMethod.GET})
+    public String adminMenu(HttpSession session, Model model)
     {
-        if(validation.adminAccess(roleName,userDto)){
+        if(session.getAttribute("UserDto") == null) {
+            model.addAttribute("message", "Необходимо авторизоваться");
+            return "redirect:/auth";
+        }
+        if("admin".equals(session.getAttribute("roleName"))) {
             model.addAttribute("data", service.getGraphicData());
+            model.addAttribute("data2", service.getGraphicData2());
+            model.addAttribute("legend",service.getGraphic2Legend());
             return "adminMenu";
         }
         else    {
@@ -33,14 +38,13 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/allContracts")
-    public String allContracts(@SessionAttribute("roleName")String roleName,
-                            @SessionAttribute("UserDto") UserDto userDto, Model model)
+    public String allContracts(HttpSession session, Model model)
     {
-        if(roleName==null){
-            model.addAttribute("message","Авторизуйтесь");
-            return "auth";
+        if(session.getAttribute("UserDto") == null) {
+            model.addAttribute("message", "Необходимо авторизоваться");
+            return "redirect:/auth";
         }
-        if(validation.adminAccess(roleName,userDto)){
+        if("admin".equals(session.getAttribute("roleName"))) {
             model.addAttribute("contracts",service.getAllContracts());
             return "view_Contracts";
         }
@@ -50,11 +54,13 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/userManage", method = {RequestMethod.GET,RequestMethod.POST})
-    public String editRoles(@SessionAttribute("roleName")String roleName,
-                               @SessionAttribute("UserDto") UserDto userDto,
-                               Model model)
+    public String editRoles(HttpSession session, Model model)
     {
-        if(validation.adminAccess(roleName,userDto)){
+        if(session.getAttribute("UserDto") == null) {
+            model.addAttribute("message", "Необходимо авторизоваться");
+            return "redirect:/auth";
+        }
+        if("admin".equals(session.getAttribute("roleName"))) {
             model.addAttribute("users",service.getAllUsers());
             return "editUsers";
         }
@@ -64,14 +70,21 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/setNewRole", method = {RequestMethod.GET,RequestMethod.POST})
-    public String setNewRole(@SessionAttribute("roleName")String roleName,
-                            @SessionAttribute("UserDto") UserDto userDto,
-                            @ModelAttribute("User")UserDto userToEdit)
+    public String setNewRole(HttpSession session, Model model, @ModelAttribute("User")UserDto userToEdit)
     {
-        if(validation.adminAccess(roleName,userDto)){
-            service.changeRole(userToEdit);
-
-            return "redirect:/userManage";
+        if(session.getAttribute("UserDto") == null) {
+            model.addAttribute("message", "Необходимо авторизоваться");
+            return "redirect:/auth";
+        }
+        if("admin".equals(session.getAttribute("roleName"))) {
+            if(validation.UserDtoIsValid(userToEdit)) {
+                service.changeRole(userToEdit);
+                return "redirect:/userManage";
+            }
+            else {
+                model.addAttribute("message","Некоректный ввод");
+                return "myInfo";
+            }
         }
         else    {
             return "redirect:/";

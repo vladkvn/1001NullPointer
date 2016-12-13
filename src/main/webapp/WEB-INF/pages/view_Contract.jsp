@@ -43,6 +43,21 @@
             </select>
         </td>
     </tr>
+    <tr>
+        <td>
+            Вторая сторона
+        </td>
+        <td>
+            <c:choose>
+                <c:when test="${sessionScope.get(\"nameRole\").equals(\"admin\")}">
+                    <a href="/viewCompany${contract.company.companyId}">${contract.company.companyName}</a>
+                </c:when>
+                <c:otherwise>
+                    ${contract.company.companyName}
+                </c:otherwise>
+            </c:choose>
+        </td>
+    </tr>
             <c:if test="${sessionScope.get(\"roleName\").equals(\"admin\")}">
                 <tr>
                     <td>

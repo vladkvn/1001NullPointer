@@ -15,7 +15,7 @@
     <vk:footer></vk:footer>
 </c:if>
 
-<table border="2">
+<table border="2" align="center">
     <tr>
         <td>
             Логин

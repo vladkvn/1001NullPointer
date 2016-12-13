@@ -60,4 +60,9 @@ public class CommentDaoImpl implements CommentDao {
         String values[] = new String[]{((Integer) contractId).toString()};
         return (List<Comment>) hibernateTemplate.findByNamedParam(hql, params, values);
     }
+
+    @Override
+    public boolean CommentExist(int commentId) {
+        return hibernateTemplate.get(Comment.class,commentId)==null?false:true;
+    }
 }

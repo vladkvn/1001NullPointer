@@ -24,14 +24,18 @@
 <div align="center" style="width: 75%">
     <p style="margin-right: 45%">
         Список контрактов: <br>
+                    ${company.companyName}
     </p>
 </div>
 <br>
 <c:if test="${sessionScope.get(\"roleName\").equals(\"admin\")}">
     <c:if test="${contracts.size()==0}">
-        Ваш список контрактов пуст
+        <p align="center">
+        Cписок контрактов пуст
+        </p>
     </c:if>
 </c:if>
+<c:if test="${contracts.size()!=0}">
 <table border="1" align="center" width="75%">
 <c:forEach items="${contracts}" var="contract" varStatus="varStatus">
     <tr>
@@ -44,6 +48,6 @@
     </tr>
 </c:forEach>
 </table>
-
+</c:if>
 </body>
 </html>

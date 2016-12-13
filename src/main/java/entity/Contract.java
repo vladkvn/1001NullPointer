@@ -23,6 +23,14 @@ public class Contract {
     @Column(name = "discription", unique = true)
     protected String discription;
 
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
+    }
+
     @ManyToMany(mappedBy = "userContracts", cascade = CascadeType.DETACH)
     protected List<User> usersList = new ArrayList<User>();
 
@@ -31,6 +39,10 @@ public class Contract {
             joinColumns = {@JoinColumn(name = "contract_id")},
             inverseJoinColumns = {@JoinColumn(name = "comment_id")})
     protected List<Comment> commentList = new ArrayList<Comment>();
+
+    @ManyToOne
+    @JoinColumn(name = "company_id")
+    Company company;
 
     public Contract(int id, String discription, String fullDiscription) {
         this.id=id;
